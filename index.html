@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>Potenciometro</title>
+</head>
+<style>
+
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins';
+  }
+
+  body {
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  header {
+    height: 15%;
+    background-color: #8cc79f;
+  }
+
+  header > h1 {
+    color: #2f2f2f;
+    font-weight: bold;
+    font-size: 4.5vh;
+  }
+
+  main {
+    height: 85%;
+  }
+
+  article {
+    width: 50%;
+  }
+
+  .form-arduino {
+    flex-direction: column;
+    height: 100%;
+    background-color: #ABD6DFFF;
+  }
+
+  .form-arduino > h2 {
+    padding-bottom: 70px;
+    font-size: 3rem;
+    color: #2f2f2f;
+    text-align: center;
+  }
+
+  .form-arduino > form {
+    display: flex;
+    justify-content: space-evenly;
+    flex-direction: column;
+    align-items: center;
+    height: 60%;
+    width: 70%;
+    border-radius: 15px;
+    background-color: #E7EBE0FF;
+    padding: 15px;
+    border: 3px solid #fff;
+  }
+
+  .form-arduino > form > button {
+    width: 30%;
+    padding: 5px;
+    border-radius: 14px;
+    background-color: #fff;
+    border: none;
+    cursor: pointer;
+    transition: 0.6s ease-out;
+  }
+
+  .form-arduino > form > button:hover {
+    background-color: #ABD6DFFF;
+    transition: 0.6s ease-in;
+  }
+
+  .form-arduino > form > input {
+    width: 30%;
+    padding: 2%;
+    border-radius: 12px;
+    font-size: 1.5vh;
+    text-align: center;
+    border: none;
+  }
+
+  .form-arduino > form > input:focus {
+    outline: none !important;
+  }
+
+  .form-arduino > form > div {
+    padding: 5%;
+    width: 100%;
+  }
+
+  .form-arduino > form > h3 {
+    font-size: 2.5vh;
+    padding: 10px;
+    color: #2f2f2f;
+    text-align: center;
+  }
+
+  .form-arduino > form > div > h3 {
+    padding: 10px 10px 15px 10px
+  }
+
+  .form-arduino > form > div > h3,
+  .form-arduino > form > div > p {
+    font-size: 3.5vh;
+    color: #2f2f2f;
+    text-align: center;
+  }
+
+</style>
+<body>
+  <header class="center">
+    <h1>PROGRAMACIÓN ESTRUCTURADA</h1>
+  </header>
+  <main class="center">
+    <article class="center">
+      <img src="stepMotor.gif" height="550" />
+    </article>
+    <article class="form-arduino center">
+      <h2>Activar Motor a Pasos</h2>
+      <form id="turnForm">
+        <div>
+          <h3>Porcentaje</h3>
+          <p id="percentage"></p>
+        </div>   
+        <h3>Ingrese la Cantidad de Vueltas</h3>
+        <input id="turns" type="number" min="1" max="8" placeholder="1"/>
+        <button type="submit" onclick="sendTurns()">Enviar</button>
+      </form>
+    </article>
+  </main>
+  <script>
+    const getTurns = async () => {
+      const res = await fetch('/get-data')
+      const data = await res.json()
+
+      const { percentage } = data
+      const percentageText = document.getElementById('percentage')
+      percentageText.textContent = `${percentage}%`
+    }
+
+    const sendTurns = async () => {
+      const turns = document.getElementById('turns')
+      const turnValue = turns.value
+
+      if (isNaN(turnValue)) {
+        alert('Por favor ingrese un numero valido')
+        return
+      }
+      
+      try {
+        const res = await fetch(`/send-data?turns=${turnValue}`)
+        if (!res.ok) throw new Error('Network response was not ok')
+        console.log('Data has been sent successfully')
+      } catch (error) {
+        console.error('Data has not been sent successfully')
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', getTurns)
+    setInterval(getTurns, 5000)
+
+    const turnForm = document.getElementById('turnForm')
+    turnForm.addEventListener('submit', (event) => event.preventDefault())
+  </script>
+</body>
+</html>
