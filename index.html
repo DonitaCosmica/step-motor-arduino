@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://fonts.googleapis.com/css?family=Poppins' rel='stylesheet'>
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link id="favicon" rel="icon" type="image/x-icon" href="favicon.ico">
     <title>Potenciometro</title>
 </head>
 <style>
@@ -130,7 +130,7 @@
   </header>
   <main class="center">
     <article class="center">
-      <img src="stepMotor.gif" height="550" />
+      <img id="stepMotorGif" src="stepMotor.gif" height="550" />
     </article>
     <article class="form-arduino center">
       <h2>Activar Motor a Pasos</h2>
@@ -146,14 +146,45 @@
     </article>
   </main>
   <script>
-    const getTurns = async () => {
-      const res = await fetch('/get-data')
-      const data = await res.json()
+    let isSending = false
 
-      const { percentage } = data
-      const percentageText = document.getElementById('percentage')
-      percentageText.textContent = `${percentage}%`
-    }
+    document.addEventListener("DOMContentLoaded", () => {
+      const resources = [
+        document.getElementById('favicon'),
+        document.getElementById('stepMotorGif')
+      ]
+
+      const checkResourceLoad = () => {
+        const allLoaded = resources.every(res => {
+          if (res.tagName === 'IMG')
+            return res.complete
+          else if (res.tagName === 'LINK' && res.rel === 'icon') {
+            const img = new Image()
+            img.src = res.href
+            return img.complete
+          }
+          return false
+        })
+
+        if (allLoaded && !isSending)
+          getPercentage()
+      }
+
+      const getPercentage = async () => {
+        const res = await fetch('/per')
+        const data = await res.json()
+
+        const { percentage } = data
+        const percentageText = document.getElementById('percentage')
+        percentageText.textContent = `${percentage}%`
+      }
+
+      checkResourceLoad()
+      setInterval(() => {
+        if(!isSending)
+          getPercentage()
+      }, 4000)
+    })
 
     const sendTurns = async () => {
       const turns = document.getElementById('turns')
@@ -165,16 +196,16 @@
       }
       
       try {
-        const res = await fetch(`/send-data?turns=${turnValue}`)
+        isSending = true
+        const res = await fetch(`/tur?turns=${turnValue}`)
         if (!res.ok) throw new Error('Network response was not ok')
         console.log('Data has been sent successfully')
       } catch (error) {
         console.error('Data has not been sent successfully')
+      } finally {
+        isSending = false
       }
     }
-
-    document.addEventListener('DOMContentLoaded', getTurns)
-    setInterval(getTurns, 5000)
 
     const turnForm = document.getElementById('turnForm')
     turnForm.addEventListener('submit', (event) => event.preventDefault())
